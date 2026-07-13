@@ -1,30 +1,33 @@
-// custom-provider.ts
-// Plug in your own embedder / chat model. The core depends only on the
+// examples/custom-provider.ts
+// Plug in your own embedder and chat model. The core depends only on the
 // `Embedder` and `ChatModel` interfaces — no vendor SDK is hardcoded (ADR D5).
 // Local providers (e.g. Ollama) swap in the same way without core changes.
+//
+// Run:  bun run examples/custom-provider.ts
 
 import {
+  type ChatMessage,
   type ChatModel,
-  createEmailSearch,
   type Email,
+  EmailSearch,
   type Embedder,
-} from "semantic-email-search";
+} from "../src/index.ts";
 
-// Minimal interfaces matching the PRD provider-agnostic contract.
-// (Exact signatures are finalized in implementation; this shows the shape.)
-const localEmbedder: Embedder = {
+// Minimal stand-ins for the provider interfaces. Replace with real calls.
+class MyEmbedder implements Embedder {
   async embed(texts: string[]): Promise<number[][]> {
     // Call your local embedding server here.
-    return texts.map(() => new Array(384).fill(0));
-  },
-};
+    return texts.map(() => new Array(256).fill(0));
+  }
+}
 
-const localChat: ChatModel = {
-  async complete(prompt: string): Promise<string> {
+class MyChat implements ChatModel {
+  async complete(messages: ChatMessage[]): Promise<string> {
     // Call your local LLM here.
-    return `Answer based on: ${prompt.slice(0, 40)}…`;
-  },
-};
+    const last = messages[messages.length - 1]?.content ?? "";
+    return `Answer grounded in: ${last.slice(0, 60)}…`;
+  }
+}
 
 const corpus: Email[] = [
   {
@@ -38,15 +41,18 @@ const corpus: Email[] = [
 ];
 
 async function main() {
-  const search = createEmailSearch({
-    embedder: localEmbedder,
-    chatModel: localChat,
+  const search = new EmailSearch({
+    embedder: new MyEmbedder(),
+    chat: new MyChat(),
   });
 
   await search.index(corpus);
 
-  const result = await search.ask("partnership proposal");
+  const result = await search.search("partnership proposal");
   console.log(result.answer);
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

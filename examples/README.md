@@ -1,24 +1,47 @@
 # Examples
 
-These examples show how to use the **semantic email search** library described in
-[`PRD.md`](../PRD.md). They follow the non-normative API in PRD §7 and the decisions in
-[`doc/adr/0001-semantic-email-search-library.md`](../doc/adr/0001-semantic-email-search-library.md).
-
-> Note: the library is not implemented yet. These files mirror the _intended_ public API
-> so callers can design against it. Once `src/` exists, swap the import path to the real
-> package entrypoint.
+Usage examples for the **semantic email search** library, aligned with the real API
+used in [`src/cli.ts`](../src/cli.ts). Each file is runnable with Bun and imports the
+library directly from `../src/index.ts`.
 
 ## Files
 
-- [`basic-usage.ts`](./basic-usage.ts) — ingest a small corpus, ask a question, get an answer + citations.
-- [`invoice-last-month.ts`](./invoice-last-month.ts) — "invoice from last month" via a semantic query + `dateFrom`/`dateTo` filters (the library never parses "last month" itself).
-- [`custom-provider.ts`](./custom-provider.ts) — plug in your own `Embedder` / `ChatModel` (provider-agnostic core).
+- [`basic-usage.ts`](./basic-usage.ts) — index a small corpus, `search("interview invitation")`, print answer + citations.
+- [`invoice-last-month.ts`](./invoice-last-month.ts) — "invoice from last month" via a semantic query + `lastMonthRange()` date filter (the library never parses "last month" itself).
+- [`custom-provider.ts`](./custom-provider.ts) — implement your own `Embedder` / `ChatModel` interfaces (provider-agnostic core).
 - [`low-confidence.ts`](./low-confidence.ts) — read the `lowConfidence` flag and surface a warning without losing the answer.
 
-## Key rules these examples respect
+## Run
 
-- **No Gmail, no UI** — callers pass `Email[]` in and get `SearchResult` out.
-- **Time is explicit** — date windows come from the caller via `SearchFilters`, not from parsing natural language (PRD §5, ADR D3).
-- **Hybrid RAG** — retrieval runs on summary embeddings; the answer is generated from full bodies of the top‑k hits (ADR D4).
-- **Provider-agnostic** — core depends only on `Embedder` and `ChatModel` interfaces (ADR D5).
-- **Best-effort on weak matches** — a low score sets `lowConfidence: true` but still returns an answer (ADR D8).
+```bash
+bun run examples/basic-usage.ts
+bun run examples/invoice-last-month.ts
+bun run examples/custom-provider.ts
+bun run examples/low-confidence.ts
+```
+
+All examples use the offline `LexicalEmbedder` + `ExtractiveChatModel` adapters, so no
+API keys are required. For cloud embeddings/chat, swap in `createOpenAIProviders()`.
+
+## Real API shape (from `src/`)
+
+```ts
+import {
+  EmailSearch,
+  LexicalEmbedder,
+  ExtractiveChatModel,
+} from "ai-smart-gmail";
+
+const search = new EmailSearch({
+  embedder: new LexicalEmbedder(),
+  chat: new ExtractiveChatModel(),
+});
+
+await search.index(emails); // emails: Email[]
+const result = await search.search(
+  // result: { answer, citations, lowConfidence }
+  "invoice", // query
+  { dateFrom, dateTo }, // optional SearchFilters
+  { topK: 5, lowConfidenceThreshold: 0.18 }, // optional SearchOptions
+);
+```

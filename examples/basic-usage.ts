@@ -1,8 +1,9 @@
-// basic-usage.ts
-// Ingest a small corpus and ask a natural-language question.
-// Mirrors the PRD §7 conceptual API + ADR-0001 D1/D2/D4.
+// examples/basic-usage.ts
+// Ingest a small corpus and ask a natural-language question. Mirrors src/cli.ts.
+//
+// Run:  bun run examples/basic-usage.ts
 
-import { createEmailSearch, type Email, type SearchResult } from "semantic-email-search";
+import { type Email, EmailSearch, ExtractiveChatModel, LexicalEmbedder } from "../src/index.ts";
 
 const corpus: Email[] = [
   {
@@ -25,21 +26,28 @@ const corpus: Email[] = [
 ];
 
 async function main() {
-  // `createEmailSearch` wires the default cloud adapter unless you pass your own.
-  const search = createEmailSearch();
+  // Offline defaults: no API keys required.
+  const search = new EmailSearch({
+    embedder: new LexicalEmbedder(),
+    chat: new ExtractiveChatModel(),
+  });
 
   // Index once; subsequent queries are in-memory and fast.
   await search.index(corpus);
+  console.log(`Indexed ${search.size} emails.\n`);
 
-  const result: SearchResult = await search.ask("interview invitation");
+  const result = await search.search("interview invitation");
 
   console.log(result.answer);
   for (const c of result.citations) {
-    console.log(`- ${c.emailId} (score ${c.score.toFixed(3)})`);
+    console.log(`- ${c.emailId}  score=${c.score.toFixed(3)}`);
   }
   if (result.lowConfidence) {
     console.log("(low confidence — treat the answer as best-effort)");
   }
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

@@ -1,8 +1,10 @@
-// low-confidence.ts
+// examples/low-confidence.ts
 // Weak retrieval still returns a best-effort answer, but sets `lowConfidence`.
 // Hosts decide the UX — warn, retry, or fall back (ADR D8, FR-11).
+//
+// Run:  bun run examples/low-confidence.ts
 
-import { createEmailSearch, type Email, type SearchResult } from "semantic-email-search";
+import { type Email, EmailSearch, ExtractiveChatModel, LexicalEmbedder } from "../src/index.ts";
 
 const corpus: Email[] = [
   {
@@ -16,11 +18,15 @@ const corpus: Email[] = [
 ];
 
 async function main() {
-  const search = createEmailSearch();
+  const search = new EmailSearch({
+    embedder: new LexicalEmbedder(),
+    chat: new ExtractiveChatModel(),
+  });
+
   await search.index(corpus);
 
   // A query with no real match in the corpus.
-  const result: SearchResult = await search.ask("quarterly revenue forecast for Q3");
+  const result = await search.search("quarterly revenue forecast for Q3");
 
   if (result.lowConfidence) {
     console.warn("Low confidence: no strong match found. Showing best-effort answer.");
@@ -35,4 +41,7 @@ async function main() {
   }
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
