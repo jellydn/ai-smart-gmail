@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Embeddings — quick reference</title>
+<link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+<main>
+  <span class="tag">Reference · Embeddings</span>
+  <h1>Embeddings &amp; Vector Search</h1>
+  <p class="subtitle">Compressed essence for Day 8 of the 30-day AI learning plan.</p>
+
+  <h2>1. What an embedding is</h2>
+  <p>A function <code>embed(text) → number[]</code> of <strong>fixed length</strong> (e.g. 384).
+  The list is a <em>coordinate</em> in N-dimensional space. Texts with similar <em>meaning</em>
+  get nearby coordinates. That is the entire trick.</p>
+
+  <h2>2. Cosine similarity</h2>
+  <p>How close two embeddings are, measured by angle (not distance):</p>
+  <pre><code>cosine(a, b) = (a · b) / (|a| · |b|)   ∈ [-1, 1]
+
+if a, b are unit-length:  cosine = a · b  (just the dot product)
+ 1.0 = same direction  → very similar meaning
+ 0.0 = unrelated
+-1.0 = opposite</code></pre>
+  <p>With a normalized embedder you can skip the magnitudes — rank by dot product.</p>
+
+  <h2>3. Vector search in 3 steps</h2>
+  <ul>
+    <li><strong>Index:</strong> embed every document once → store its vector.</li>
+    <li><strong>Query:</strong> embed the query text → one vector.</li>
+    <li><strong>Rank:</strong> cosine-similarity(query, each doc) → return top-k.</li>
+  </ul>
+
+  <h2>4. Semantic vs lexical (the key contrast)</h2>
+  <table style="width:100%;border-collapse:collapse;font-size:0.9rem">
+    <tr style="border-bottom:1px solid var(--rule)"><th align="left">Lexical / bag-of-words</th><th align="left">Semantic embedding</th></tr>
+    <tr style="border-bottom:1px solid var(--rule)"><td>Matches shared <em>words</em></td><td>Matches shared <em>meaning</em></td></tr>
+    <tr style="border-bottom:1px solid var(--rule)"><td>"car" ≠ "automobile"</td><td>"car" ≈ "automobile"</td></tr>
+    <tr><td>Fast, offline, no model</td><td>Needs a model (e.g. SBERT)</td></tr>
+  </table>
+  <div class="note">The library's <code>LexicalEmbedder</code> is lexical — fine for fixtures,
+  but it cannot "search by meaning." A real model (SBERT / <code>all-MiniLM-L6-v2</code>) is
+  what makes RAG retrieval work.</div>
+
+  <h2>5. Minimal cosine in TypeScript</h2>
+  <pre><code>function cosine(a: number[], b: number[]): number {
+  let dot = 0, ma = 0, mb = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    ma += a[i] * a[i];
+    mb += b[i] * b[i];
+  }
+  return dot / (Math.sqrt(ma) * Math.sqrt(mb));
+}</code></pre>
+
+  <h2>6. Primary sources</h2>
+  <ul>
+    <li><a href="https://platform.openai.com/docs/guides/embeddings">OpenAI — Embeddings guide</a></li>
+    <li><a href="https://www.sbert.net/">Sentence Transformers docs</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Cosine_similarity">Cosine similarity (Wikipedia)</a></li>
+  </ul>
+
+  <footer>Part of the 30-day AI learning workspace · see <a href="../MISSION.md">MISSION.md</a></footer>
+</main>
+</body>
+</html>

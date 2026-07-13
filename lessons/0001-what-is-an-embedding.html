@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lesson 1 — What is an embedding?</title>
+<link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+<main>
+  <span class="tag">Lesson 1 · Day 8 · Embeddings</span>
+  <h1>What is an embedding?</h1>
+  <p class="subtitle">One idea, one win: text becomes a point you can measure distance on.</p>
+
+  <h2>The idea</h2>
+  <p>An <strong>embedding</strong> is a function that turns any piece of text into a fixed-length
+  list of numbers — a <em>coordinate</em> in a high-dimensional space.</p>
+  <pre><code>embed("renew your passport")  →  [0.12, -0.43, 0.88, …]   (384 numbers)
+embed("documents for going abroad") →  [0.10, -0.40, 0.85, …]</code></pre>
+  <p>The lists look random, but texts with <strong>similar meaning</strong> end up with
+  <strong>similar coordinates</strong>. "Nearby in space" becomes "similar in meaning." That is
+  the whole foundation of semantic search and RAG.</p>
+
+  <div class="note">You do <em>not</em> read the individual numbers. Their meaning lives in the
+  <strong>geometry</strong> — distances and angles between vectors, not the values themselves.</div>
+
+  <h2>Why this matters for the mission</h2>
+  <p>The <code>ai-smart-gmail</code> library retrieves emails by meaning. That retrieval
+  <em>is</em> embedding the query, then ranking emails by how close their embeddings are.
+  No embeddings → no semantic search → no RAG.</p>
+
+  <h2>Check your understanding</h2>
+  <div class="quiz" id="q1">
+    <div class="q">Two texts have very similar embeddings. What does that mean?</div>
+    <div class="opts">
+      <button data-correct="1">They have similar meaning.</button>
+      <button>They use the exact same words.</button>
+      <button>They are the same length.</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+  <div class="quiz" id="q2">
+    <div class="q">A "lexical" embedder matches on shared words; a "semantic" embedder matches on…?</div>
+    <div class="opts">
+      <button>Letter frequency.</button>
+      <button data-correct="1">Meaning, even with different words.</button>
+      <button>File size.</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <h2>Try it</h2>
+  <p>Run the Day 8 demo and watch the ranking:</p>
+  <pre><code>cd day8
+bun install
+bun start</code></pre>
+  <p>Find a query with <em>zero</em> word overlap with its top result. That gap is the proof
+  embeddings capture meaning, not keywords.</p>
+
+  <hr />
+  <p><strong>Primary source:</strong> read the
+  <a href="https://platform.openai.com/docs/guides/embeddings">OpenAI Embeddings guide</a>
+  (10 min) — clearest intro to what embeddings are and how to search with them.</p>
+  <p>See also the <a href="../reference/embeddings.html">embeddings reference</a> and
+  <a href="https://www.sbert.net/">Sentence Transformers docs</a>.</p>
+
+  <div class="note">Stuck or curious? <strong>Ask your agent-teacher a follow-up question</strong> —
+  about dimensions, models, or how this powers the email library. That is what it is here for.</div>
+
+  <footer>Part of the 30-day AI learning workspace · <a href="../MISSION.md">MISSION.md</a></footer>
+</main>
+<script>
+  for (const q of document.querySelectorAll(".quiz")) {
+    const fb = q.querySelector(".fb");
+    q.querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (q.dataset.done) return;
+        q.dataset.done = "1";
+        const ok = btn.dataset.correct === "1";
+        btn.classList.add(ok ? "correct" : "wrong");
+        fb.textContent = ok
+          ? "Correct — similarity of embeddings ≈ similarity of meaning."
+          : "Not quite. Similar embeddings mean similar meaning, not identical words or length.";
+      });
+    });
+  }
+</script>
+</body>
+</html>
