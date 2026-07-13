@@ -1,0 +1,17 @@
+# See https://prek.j178.dev for more information.
+repos:
+  - repo: local
+    hooks:
+      - id: oxlint
+        name: oxlint
+        entry: oxlint --fix
+        language: system
+        files: \.(ts|tsx|js|jsx|mjs|cjs)$
+        pass_filenames: true
+
+      - id: oxfmt
+        name: oxfmt
+        entry: oxfmt
+        language: system
+        files: \.(ts|tsx|js|jsx|mjs|cjs)$
+        pass_filenames: true
