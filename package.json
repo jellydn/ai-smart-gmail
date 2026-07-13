@@ -1,0 +1,20 @@
+{
+  "name": "ai-smart-gmail",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "module": "src/index.ts",
+  "scripts": {
+    "demo": "bun run src/cli.ts",
+    "test": "bun test",
+    "eval": "bun test src/eval",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/bun": "^1.1.0"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.3.0"
+  }
+}
